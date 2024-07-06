@@ -43,7 +43,7 @@ router.post('/shorten',
 );
 
 // Ruta para obtener las URLs acortadas por un usuario
-router.get('/:userId', async (req, res) => {
+router.get('/user/:userId', async (req, res) => {
   const { userId } = req.params;
 
   try {
@@ -55,7 +55,7 @@ router.get('/:userId', async (req, res) => {
 });
 
 // Ruta para redireccionar una URL acortada
-router.get('/s/:shortUrl', async (req, res) => {
+router.get('/:shortUrl', async (req, res) => {
   const { shortUrl } = req.params;
 
   let url = urlCache.get(shortUrl);
