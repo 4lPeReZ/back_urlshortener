@@ -1,0 +1,28 @@
+# Dependencias de Node
+node_modules/
+
+# Archivos de entorno
+.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Directorios temporales
+tmp/
+temp/
+
+# Configuración de IDEs
+.vscode/
+.idea/
+
+# Archivos del sistema operativo
+.DS_Store
+
+# Archivos de compilación
+dist/
+build/
+
+# Test coverage
+coverage/
