@@ -16,8 +16,13 @@ app.use(cors());
 app.use(express.json());
 
 // Rutas
-app.use('/api/url', urlRoutes); // Asegúrate de que la ruta base esté configurada correctamente
+app.use('/api/url', urlRoutes);
 app.use('/api/auth', authRoutes);
+
+// Ruta raíz (opcional)
+app.get('/', (req, res) => {
+  res.send('URL Shortener API');
+});
 
 // Conexión a la base de datos
 mongoose.connect(process.env.MONGO_URI, {
