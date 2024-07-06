@@ -53,6 +53,6 @@ Este es el backend para un servicio de acortamiento de URLs, construido con Node
     ```bash
     npm run dev
 
-### Licencia
+## Licencia
 
 - Este archivo `README.md` proporciona una descripción clara y completa de tu proyecto, sus características, tecnologías utilizadas, configuración, despliegue y cómo usar los endpoints. Si tienes más detalles específicos o deseas agregar información adicional, puedes personalizarlo según tus necesidades.
