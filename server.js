@@ -16,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 
 // Rutas
-app.use('/', urlRoutes);
+app.use('/api/url', urlRoutes); // Asegúrate de que la ruta base esté configurada correctamente
 app.use('/api/auth', authRoutes);
 
 // Conexión a la base de datos

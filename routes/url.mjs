@@ -25,7 +25,7 @@ router.post('/shorten',
     try {
       const url = new Url({ originalUrl, shortUrl, userId, expiresAt });
       await url.save();
-      const fullShortUrl = `${baseUrl}/${shortUrl}`;
+      const fullShortUrl = `${baseUrl}/s/${shortUrl}`;
       res.status(201).json({
         originalUrl: url.originalUrl,
         shortUrl: fullShortUrl,
@@ -55,7 +55,7 @@ router.get('/user/:userId', async (req, res) => {
 });
 
 // Ruta para redireccionar una URL acortada
-router.get('/:shortUrl', async (req, res) => {
+router.get('/s/:shortUrl', async (req, res) => {
   const { shortUrl } = req.params;
 
   let url = urlCache.get(shortUrl);
