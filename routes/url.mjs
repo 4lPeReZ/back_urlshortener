@@ -8,7 +8,7 @@ const urlCache = new NodeCache({ stdTTL: 600 });
 const router = express.Router();
 
 // Define tu base URL
-const baseUrl = 'https://back-urlshortener.onrender.com'; // Cambia esto a tu dominio
+const baseUrl = 'https://back-urlshortener.onrender.com';
 
 // Ruta para acortar una URL
 router.post('/shorten',
