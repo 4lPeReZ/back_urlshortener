@@ -48,7 +48,14 @@ router.get('/user/:userId', async (req, res) => {
 
   try {
     const urls = await Url.find({ userId });
-    res.status(200).json(urls);
+
+    // Actualizar la URL corta para que incluya el dominio completo
+    const fullUrls = urls.map(url => ({
+      ...url._doc,
+      shortUrl: `${baseUrl}/api/url/${url.shortUrl}`
+    }));
+
+    res.status(200).json(fullUrls);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
