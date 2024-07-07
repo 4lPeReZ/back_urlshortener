@@ -55,7 +55,7 @@ router.get('/user/:userId', async (req, res) => {
 });
 
 // Ruta para redireccionar una URL acortada
-router.get('/s/:shortUrl', async (req, res) => {
+router.get('/:shortUrl', async (req, res) => {
   const { shortUrl } = req.params;
   console.log(`Attempting to redirect shortUrl: ${shortUrl}`);
 
