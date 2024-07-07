@@ -13,19 +13,8 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // Middlewares
-app.use(cors({
-  origin: 'https://back-urlshortener.onrender.com',
-}));
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-    },
-  },
-}));
+app.use(cors());
+app.use(helmet());
 app.use(express.json());
 
 // Rutas
