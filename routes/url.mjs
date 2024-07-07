@@ -25,7 +25,7 @@ router.post('/shorten',
     try {
       const url = new Url({ originalUrl, shortUrl, userId, expiresAt });
       await url.save();
-      const fullShortUrl = `${baseUrl}/${shortUrl}`;
+      const fullShortUrl = `${baseUrl}/api/url/${shortUrl}`;
       res.status(201).json({
         originalUrl: url.originalUrl,
         shortUrl: fullShortUrl,
