@@ -105,7 +105,20 @@ router.put('/update/:id', async (req, res) => {
       url.expiresAt = expiresAt || url.expiresAt;
       url.status = status || url.status;
       await url.save();
-      res.status(200).json(url);
+      
+      // Agregar la URL completa al campo shortUrl
+      const fullShortUrl = `${baseUrl}/api/url/${url.shortUrl}`;
+
+      res.status(200).json({
+        _id: url._id,
+        originalUrl: url.originalUrl,
+        shortUrl: fullShortUrl,
+        userId: url.userId,
+        clicks: url.clicks,
+        status: url.status,
+        createdAt: url.createdAt,
+        expiresAt: url.expiresAt
+      });
     } else {
       res.status(404).json({ message: 'URL not found' });
     }
