@@ -8,7 +8,7 @@ const urlCache = new NodeCache({ stdTTL: 600 });
 const router = express.Router();
 
 // Define tu base URL
-const baseUrl = 'https://back-urlshortener.onrender.com';
+const baseUrl = 'http://localhost:5000';
 
 // Ruta para acortar una URL
 router.post('/shorten',
@@ -94,14 +94,27 @@ router.get('/:shortUrl', async (req, res) => {
 });
 
 // Ruta para editar una URL acortada
-router.put('/update/:id', async (req, res) => {
+router.put('/update/:id', 
+  body('originalUrl').optional().isURL().withMessage('Invalid URL'),
+  body('expiresAt').optional().isISO8601().toDate().withMessage('Invalid date format'),
+  body('status').optional().isIn(['Active', 'Inactive']).withMessage('Invalid status'),
+  async (req, res) => {
   const { id } = req.params;
   const { originalUrl, expiresAt, status } = req.body;
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
 
   try {
     const url = await Url.findById(id);
     if (url) {
-      url.originalUrl = originalUrl || url.originalUrl;
+      // Si se proporciona una nueva originalUrl, generamos una nueva shortUrl
+      if (originalUrl) {
+        url.originalUrl = originalUrl;
+        url.shortUrl = nanoid(7); // Genera una nueva shortUrl
+      }
       url.expiresAt = expiresAt || url.expiresAt;
       url.status = status || url.status;
       await url.save();
