@@ -5,27 +5,33 @@ import passport from 'passport';
 
 const router = express.Router();
 
-// Ruta de autenticación con Google
+// Ruta para autenticar con Google
 router.get('/google', passport.authenticate('google', {
   scope: ['profile', 'email']
 }));
 
-// Callback de Google
-router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
-  res.redirect('/'); // Redirige al frontend después de la autenticación
-});
+// Ruta de callback de Google
+router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }),
+  (req, res) => {
+    // Autenticación exitosa, redirige a la página principal o donde prefieras
+    res.redirect('/');
+  }
+);
 
-// Ruta de autenticación con GitHub
+// Ruta para autenticar con GitHub
 router.get('/github', passport.authenticate('github', {
   scope: ['user:email']
 }));
 
-// Callback de GitHub
-router.get('/github/callback', passport.authenticate('github', { failureRedirect: '/' }), (req, res) => {
-  res.redirect('/'); // Redirige al frontend después de la autenticación
-});
+// Ruta de callback de GitHub
+router.get('/github/callback', passport.authenticate('github', { failureRedirect: '/' }),
+  (req, res) => {
+    // Autenticación exitosa, redirige a la página principal o donde prefieras
+    res.redirect('/');
+  }
+);
 
-// Ruta para logout
+// Ruta para cerrar sesión
 router.get('/logout', (req, res) => {
   req.logout();
   res.redirect('/');

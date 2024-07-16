@@ -1,3 +1,5 @@
+// config/passport-setup.js
+
 import dotenv from 'dotenv';
 dotenv.config(); // Asegúrate de cargar las variables de entorno
 

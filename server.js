@@ -1,3 +1,5 @@
+// server.js
+
 import dotenv from 'dotenv';
 dotenv.config(); // Cargar variables de entorno antes de cualquier otra cosa
 
@@ -13,12 +15,6 @@ import './config/passport-setup.js'; // Importar setup de passport
 
 const app = express();
 const port = process.env.PORT || 5000;
-
-// Verificar que las variables de entorno se cargan correctamente
-console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID);
-console.log('GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET);
-console.log('GITHUB_CLIENT_ID:', process.env.GITHUB_CLIENT_ID);
-console.log('GITHUB_CLIENT_SECRET:', process.env.GITHUB_CLIENT_SECRET);
 
 // Middlewares
 app.use(cors());
@@ -37,7 +33,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Rutas
-app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
 app.use('/', urlRoutes);  // Asegúrate de que las rutas de URL sean manejadas desde la raíz
 
 // Ruta raíz (opcional)
