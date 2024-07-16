@@ -45,7 +45,7 @@ router.post('/shorten',
   }
 );
 
-// Redireccionar una URL acortada
+// Ruta para redireccionar una URL acortada
 router.get('/:shortUrl', async (req, res) => {
   const { shortUrl } = req.params;
   console.log(`Attempting to redirect shortUrl: ${shortUrl}`);
@@ -75,6 +75,20 @@ router.get('/:shortUrl', async (req, res) => {
   await url.save();
   console.log(`Redirecting to originalUrl: ${url.originalUrl}`);
   return res.redirect(url.originalUrl);
+});
+
+// Ruta para obtener las URLs acortadas por un usuario autenticado
+router.get('/user/urls', async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: 'User not authenticated' });
+  }
+
+  try {
+    const urls = await Url.find({ userId: req.user._id });
+    res.status(200).json(urls);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 });
 
 export default router;
