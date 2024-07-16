@@ -1,7 +1,7 @@
 // server.js
 
 import dotenv from 'dotenv';
-dotenv.config(); // Cargar variables de entorno antes de cualquier otra cosa
+dotenv.config(); // Asegúrate de cargar las variables de entorno
 
 import express from 'express';
 import mongoose from 'mongoose';
