@@ -1,41 +1,34 @@
+// routes/auth.mjs
+
 import express from 'express';
-import User from '../models/User.mjs';
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
+import passport from 'passport';
 
 const router = express.Router();
 
-router.post('/register', async (req, res) => {
-  const { username, email, password } = req.body;
+// Ruta de autenticación con Google
+router.get('/google', passport.authenticate('google', {
+  scope: ['profile', 'email']
+}));
 
-  try {
-    const user = new User({ username, email, password });
-    await user.save();
-    res.status(201).json({ message: 'User registered successfully', userId: user._id });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
+// Callback de Google
+router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
+  res.redirect('/'); // Redirige al frontend después de la autenticación
 });
 
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+// Ruta de autenticación con GitHub
+router.get('/github', passport.authenticate('github', {
+  scope: ['user:email']
+}));
 
-  try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+// Callback de GitHub
+router.get('/github/callback', passport.authenticate('github', { failureRedirect: '/' }), (req, res) => {
+  res.redirect('/'); // Redirige al frontend después de la autenticación
+});
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ error: 'Invalid credentials' });
-    }
-
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.status(200).json({ token, userId: user._id, username: user.username });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
+// Ruta para logout
+router.get('/logout', (req, res) => {
+  req.logout();
+  res.redirect('/');
 });
 
 export default router;

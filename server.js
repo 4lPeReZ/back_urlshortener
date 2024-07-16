@@ -1,11 +1,15 @@
+// server.js
+
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
-
+import session from 'express-session';
+import passport from 'passport';
 import urlRoutes from './routes/url.mjs';
 import authRoutes from './routes/auth.mjs';
+import passportSetup from './config/passport-setup.js';
 
 dotenv.config();
 
@@ -17,9 +21,20 @@ app.use(cors());
 app.use(helmet());
 app.use(express.json());
 
+// Configuración de sesiones
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true
+}));
+
+// Inicializar Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Rutas
-app.use('/api/url', urlRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/', urlRoutes);  // Asegúrate de que las rutas de URL sean manejadas desde la raíz
 
 // Ruta raíz (opcional)
 app.get('/', (req, res) => {
