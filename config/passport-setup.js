@@ -33,6 +33,7 @@ passport.use(new GoogleStrategy({
   callbackURL: `${process.env.BASE_URL}/auth/google/callback`
 }, async (accessToken, refreshToken, profile, done) => {
   try {
+    const email = profile.emails ? profile.emails[0].value : null;
     let currentUser = await User.findOne({ googleId: profile.id });
     if (currentUser) {
       done(null, currentUser);
@@ -40,6 +41,7 @@ passport.use(new GoogleStrategy({
       const newUser = await new User({
         googleId: profile.id,
         username: profile.displayName,
+        email: email,
         thumbnail: profile._json.picture
       }).save();
       done(null, newUser);
@@ -55,6 +57,7 @@ passport.use(new GitHubStrategy({
   callbackURL: `${process.env.BASE_URL}/auth/github/callback`
 }, async (accessToken, refreshToken, profile, done) => {
   try {
+    const email = profile.emails ? profile.emails[0].value : null;
     let currentUser = await User.findOne({ githubId: profile.id });
     if (currentUser) {
       done(null, currentUser);
@@ -62,6 +65,7 @@ passport.use(new GitHubStrategy({
       const newUser = await new User({
         githubId: profile.id,
         username: profile.username,
+        email: email,
         thumbnail: profile._json.avatar_url
       }).save();
       done(null, newUser);
