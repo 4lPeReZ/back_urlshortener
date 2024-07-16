@@ -25,7 +25,7 @@ passport.deserializeUser((id, done) => {
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: `${process.env.BASE_URL}/api/auth/google/callback`
+  callbackURL: `${process.env.BASE_URL}/auth/google/callback`
 }, (accessToken, refreshToken, profile, done) => {
   User.findOne({ googleId: profile.id }).then((currentUser) => {
     if (currentUser) {
@@ -45,7 +45,7 @@ passport.use(new GoogleStrategy({
 passport.use(new GitHubStrategy({
   clientID: process.env.GITHUB_CLIENT_ID,
   clientSecret: process.env.GITHUB_CLIENT_SECRET,
-  callbackURL: `${process.env.BASE_URL}/api/auth/github/callback`
+  callbackURL: `${process.env.BASE_URL}/auth/github/callback`
 }, (accessToken, refreshToken, profile, done) => {
   User.findOne({ githubId: profile.id }).then((currentUser) => {
     if (currentUser) {
