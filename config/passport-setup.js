@@ -18,50 +18,57 @@ passport.serializeUser((user, done) => {
   done(null, user.id);
 });
 
-passport.deserializeUser((id, done) => {
-  User.findById(id, (err, user) => {
-    done(err, user);
-  });
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await User.findById(id);
+    done(null, user);
+  } catch (err) {
+    done(err, null);
+  }
 });
 
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   callbackURL: `${process.env.BASE_URL}/auth/google/callback`
-}, (accessToken, refreshToken, profile, done) => {
-  User.findOne({ googleId: profile.id }).then((currentUser) => {
+}, async (accessToken, refreshToken, profile, done) => {
+  try {
+    let currentUser = await User.findOne({ googleId: profile.id });
     if (currentUser) {
       done(null, currentUser);
     } else {
-      new User({
+      const newUser = await new User({
         googleId: profile.id,
         username: profile.displayName,
         thumbnail: profile._json.picture
-      }).save().then((newUser) => {
-        done(null, newUser);
-      });
+      }).save();
+      done(null, newUser);
     }
-  }).catch((err) => done(err, null));
+  } catch (err) {
+    done(err, null);
+  }
 }));
 
 passport.use(new GitHubStrategy({
   clientID: process.env.GITHUB_CLIENT_ID,
   clientSecret: process.env.GITHUB_CLIENT_SECRET,
   callbackURL: `${process.env.BASE_URL}/auth/github/callback`
-}, (accessToken, refreshToken, profile, done) => {
-  User.findOne({ githubId: profile.id }).then((currentUser) => {
+}, async (accessToken, refreshToken, profile, done) => {
+  try {
+    let currentUser = await User.findOne({ githubId: profile.id });
     if (currentUser) {
       done(null, currentUser);
     } else {
-      new User({
+      const newUser = await new User({
         githubId: profile.id,
         username: profile.username,
         thumbnail: profile._json.avatar_url
-      }).save().then((newUser) => {
-        done(null, newUser);
-      });
+      }).save();
+      done(null, newUser);
     }
-  }).catch((err) => done(err, null));
+  } catch (err) {
+    done(err, null);
+  }
 }));
 
 export default passport;
