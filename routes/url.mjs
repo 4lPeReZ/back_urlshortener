@@ -10,7 +10,7 @@ const urlCache = new NodeCache({ stdTTL: 600 });
 const router = express.Router();
 
 // Define tu base URL
-const baseUrl = process.env.BASE_URL;
+const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
 
 // Ruta para acortar una URL
 router.post('/shorten',
@@ -44,7 +44,7 @@ router.post('/shorten',
   }
 );
 
-// Ruta para redireccionar una URL acortada
+// Redireccionar una URL acortada
 router.get('/:shortUrl', async (req, res) => {
   const { shortUrl } = req.params;
   console.log(`Attempting to redirect shortUrl: ${shortUrl}`);
