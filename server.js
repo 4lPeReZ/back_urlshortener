@@ -1,20 +1,24 @@
-// server.js
+import dotenv from 'dotenv';
+dotenv.config(); // Cargar variables de entorno antes de cualquier otra cosa
 
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import helmet from 'helmet';
 import session from 'express-session';
 import passport from 'passport';
 import urlRoutes from './routes/url.mjs';
 import authRoutes from './routes/auth.mjs';
-import passportSetup from './config/passport-setup.js';
-
-dotenv.config();
+import './config/passport-setup.js'; // Importar setup de passport
 
 const app = express();
 const port = process.env.PORT || 5000;
+
+// Verificar que las variables de entorno se cargan correctamente
+console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID);
+console.log('GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET);
+console.log('GITHUB_CLIENT_ID:', process.env.GITHUB_CLIENT_ID);
+console.log('GITHUB_CLIENT_SECRET:', process.env.GITHUB_CLIENT_SECRET);
 
 // Middlewares
 app.use(cors());

@@ -1,9 +1,16 @@
-// config/passport-setup.js
+import dotenv from 'dotenv';
+dotenv.config(); // Asegúrate de cargar las variables de entorno
 
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as GitHubStrategy } from 'passport-github2';
 import User from '../models/User.mjs';
+
+// Debugging: Log the environment variables to ensure they are loaded
+console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID);
+console.log('GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET);
+console.log('GITHUB_CLIENT_ID:', process.env.GITHUB_CLIENT_ID);
+console.log('GITHUB_CLIENT_SECRET:', process.env.GITHUB_CLIENT_SECRET);
 
 passport.serializeUser((user, done) => {
   done(null, user.id);
@@ -32,7 +39,7 @@ passport.use(new GoogleStrategy({
         done(null, newUser);
       });
     }
-  });
+  }).catch((err) => done(err, null));
 }));
 
 passport.use(new GitHubStrategy({
@@ -52,5 +59,7 @@ passport.use(new GitHubStrategy({
         done(null, newUser);
       });
     }
-  });
+  }).catch((err) => done(err, null));
 }));
+
+export default passport;
