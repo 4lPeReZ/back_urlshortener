@@ -2,8 +2,13 @@
 
 import express from 'express';
 import passport from 'passport';
+import jwt from 'jsonwebtoken';
 
 const router = express.Router();
+
+function generateToken(user) {
+  return jwt.sign({ id: user._id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '1h' });
+}
 
 // Ruta para autenticar con Google
 router.get('/google', passport.authenticate('google', {
@@ -13,8 +18,8 @@ router.get('/google', passport.authenticate('google', {
 // Ruta de callback de Google
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
-    // Autenticación exitosa, redirige a la página principal o donde prefieras
-    res.redirect('/');
+    const token = generateToken(req.user);
+    res.json({ token });
   }
 );
 
@@ -26,8 +31,8 @@ router.get('/github', passport.authenticate('github', {
 // Ruta de callback de GitHub
 router.get('/github/callback', passport.authenticate('github', { failureRedirect: '/' }),
   (req, res) => {
-    // Autenticación exitosa, redirige a la página principal o donde prefieras
-    res.redirect('/');
+    const token = generateToken(req.user);
+    res.json({ token });
   }
 );
 
