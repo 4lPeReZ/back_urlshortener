@@ -28,7 +28,7 @@ passport.use(new GoogleStrategy({
         googleId: profile.id,
         username: profile.displayName,
         thumbnail: profile._json.picture,
-        email: profile.emails[0].value  // Obtener el correo electrónico del perfil
+        email: profile.emails ? profile.emails[0].value : null  // Manejar el correo electrónico
       }).save();
     }
     done(null, currentUser);
@@ -50,7 +50,7 @@ passport.use(new GitHubStrategy({
         githubId: profile.id,
         username: profile.username,
         thumbnail: profile._json.avatar_url,
-        email: email  // Obtener el correo electrónico del perfil si está disponible
+        email: email  // Manejar el correo electrónico si está disponible
       }).save();
     }
     done(null, currentUser);
