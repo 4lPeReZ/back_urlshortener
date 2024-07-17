@@ -1,5 +1,3 @@
-// routes/url.mjs
-
 import express from 'express';
 import Url from '../models/Url.mjs';
 import { nanoid } from 'nanoid';
@@ -20,6 +18,9 @@ router.post('/shorten',
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
+
+    console.log('Authenticated User:', req.isAuthenticated());
+    console.log('User:', req.user);
 
     const { originalUrl, customUrl, expiresAt } = req.body;
     const shortUrl = customUrl || nanoid(7);
