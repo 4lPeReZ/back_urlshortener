@@ -1,30 +1,18 @@
 // config/passport-setup.js
 
-import dotenv from 'dotenv';
-dotenv.config(); // Asegúrate de cargar las variables de entorno
-
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as GitHubStrategy } from 'passport-github2';
 import User from '../models/User.mjs';
 
-// Debugging: Log the environment variables to ensure they are loaded
-console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID);
-console.log('GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET);
-console.log('GITHUB_CLIENT_ID:', process.env.GITHUB_CLIENT_ID);
-console.log('GITHUB_CLIENT_SECRET:', process.env.GITHUB_CLIENT_SECRET);
-
 passport.serializeUser((user, done) => {
   done(null, user.id);
 });
 
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await User.findById(id);
-    done(null, user);
-  } catch (err) {
-    done(err, null);
-  }
+passport.deserializeUser((id, done) => {
+  User.findById(id, (err, user) => {
+    done(err, user);
+  });
 });
 
 passport.use(new GoogleStrategy({
@@ -33,17 +21,16 @@ passport.use(new GoogleStrategy({
   callbackURL: `${process.env.BASE_URL}/auth/google/callback`
 }, async (accessToken, refreshToken, profile, done) => {
   try {
-    const email = profile.emails ? profile.emails[0].value : null;
-    let currentUser = await User.findOne({ googleId: profile.id });
+    const currentUser = await User.findOne({ googleId: profile.id });
     if (currentUser) {
       done(null, currentUser);
     } else {
-      const newUser = await new User({
+      const newUser = new User({
         googleId: profile.id,
         username: profile.displayName,
-        email: email,
         thumbnail: profile._json.picture
-      }).save();
+      });
+      await newUser.save();
       done(null, newUser);
     }
   } catch (err) {
@@ -57,17 +44,16 @@ passport.use(new GitHubStrategy({
   callbackURL: `${process.env.BASE_URL}/auth/github/callback`
 }, async (accessToken, refreshToken, profile, done) => {
   try {
-    const email = profile.emails ? profile.emails[0].value : null;
-    let currentUser = await User.findOne({ githubId: profile.id });
+    const currentUser = await User.findOne({ githubId: profile.id });
     if (currentUser) {
       done(null, currentUser);
     } else {
-      const newUser = await new User({
+      const newUser = new User({
         githubId: profile.id,
         username: profile.username,
-        email: email,
         thumbnail: profile._json.avatar_url
-      }).save();
+      });
+      await newUser.save();
       done(null, newUser);
     }
   } catch (err) {
