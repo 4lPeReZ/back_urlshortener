@@ -3,15 +3,28 @@ import Url from '../models/Url.mjs';
 import { nanoid } from 'nanoid';
 import { body, validationResult } from 'express-validator';
 import NodeCache from 'node-cache';
+import jwt from 'jsonwebtoken';
 
 const urlCache = new NodeCache({ stdTTL: 600 });
 const router = express.Router();
 
-// Define tu base URL
 const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
 
+// Middleware para verificar el token JWT y obtener el userId
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (token == null) return res.sendStatus(401);
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+}
+
 // Ruta para acortar una URL
-router.post('/shorten',
+router.post('/shorten', authenticateToken,
   body('originalUrl').isURL().withMessage('Invalid URL'),
   async (req, res) => {
     const errors = validationResult(req);
@@ -19,12 +32,10 @@ router.post('/shorten',
       return res.status(400).json({ errors: errors.array() });
     }
 
-    console.log('Authenticated User:', req.isAuthenticated());
-    console.log('User:', req.user);
-
+    console.log('Authenticated User:', req.user);
     const { originalUrl, customUrl, expiresAt } = req.body;
     const shortUrl = customUrl || nanoid(7);
-    const userId = req.user ? req.user._id : null; // Obtener userId de la sesión si está autenticado
+    const userId = req.user ? req.user.id : null;
 
     try {
       const url = new Url({ originalUrl, shortUrl, expiresAt, userId });
@@ -79,13 +90,9 @@ router.get('/:shortUrl', async (req, res) => {
 });
 
 // Ruta para obtener las URLs acortadas por un usuario autenticado
-router.get('/user/urls', async (req, res) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: 'User not authenticated' });
-  }
-
+router.get('/user/urls', authenticateToken, async (req, res) => {
   try {
-    const urls = await Url.find({ userId: req.user._id });
+    const urls = await Url.find({ userId: req.user.id });
     res.status(200).json(urls);
   } catch (error) {
     res.status(400).json({ error: error.message });
