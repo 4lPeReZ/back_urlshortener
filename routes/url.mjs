@@ -41,6 +41,7 @@ router.post('/shorten', authenticateToken,
       const url = new Url({ originalUrl, shortUrl, expiresAt, userId });
       await url.save();
       const fullShortUrl = `${baseUrl}/${shortUrl}`;
+      console.log('URL created:', fullShortUrl);
       res.status(201).json({
         originalUrl: url.originalUrl,
         shortUrl: fullShortUrl,
@@ -52,6 +53,7 @@ router.post('/shorten', authenticateToken,
         _id: url._id
       });
     } catch (error) {
+      console.error('Error creating URL:', error);
       res.status(400).json({ error: error.message });
     }
   }
