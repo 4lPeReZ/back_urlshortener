@@ -5,6 +5,7 @@ const userSchema = new mongoose.Schema({
   githubId: { type: String, unique: true, sparse: true },
   username: { type: String, required: true },
   thumbnail: { type: String },
+  email: { type: String, unique: true, sparse: true, default: null } // Permitir correos electrónicos nulos
 });
 
 const User = mongoose.model('User', userSchema);

@@ -27,7 +27,8 @@ passport.use(new GoogleStrategy({
       currentUser = await new User({
         googleId: profile.id,
         username: profile.displayName,
-        thumbnail: profile._json.picture
+        thumbnail: profile._json.picture,
+        email: profile.emails[0].value  // Obtener el correo electrónico del perfil
       }).save();
     }
     done(null, currentUser);
@@ -42,12 +43,14 @@ passport.use(new GitHubStrategy({
   callbackURL: `${process.env.BASE_URL}/auth/github/callback`
 }, async (accessToken, refreshToken, profile, done) => {
   try {
+    const email = profile.emails && profile.emails[0] && profile.emails[0].value || null;
     let currentUser = await User.findOne({ githubId: profile.id });
     if (!currentUser) {
       currentUser = await new User({
         githubId: profile.id,
         username: profile.username,
-        thumbnail: profile._json.avatar_url
+        thumbnail: profile._json.avatar_url,
+        email: email  // Obtener el correo electrónico del perfil si está disponible
       }).save();
     }
     done(null, currentUser);
