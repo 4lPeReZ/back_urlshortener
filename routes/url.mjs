@@ -43,7 +43,7 @@ router.post('/shorten', authenticateToken,
       const fullShortUrl = `${baseUrl}/${shortUrl}`;
       res.status(201).json({
         originalUrl: url.originalUrl,
-        shortUrl: fullShortUrl,  // Cambiar aquí para devolver la URL completa
+        shortUrl: fullShortUrl,
         userId: url.userId,
         expiresAt: url.expiresAt,
         status: url.status,
