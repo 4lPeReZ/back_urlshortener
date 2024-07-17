@@ -43,7 +43,7 @@ router.post('/shorten', authenticateToken,
       const fullShortUrl = `${baseUrl}/${shortUrl}`;
       res.status(201).json({
         originalUrl: url.originalUrl,
-        shortUrl: fullShortUrl,
+        shortUrl: fullShortUrl,  // Cambiar aquí para devolver la URL completa
         userId: url.userId,
         expiresAt: url.expiresAt,
         status: url.status,
@@ -93,7 +93,14 @@ router.get('/:shortUrl', async (req, res) => {
 router.get('/user/urls', authenticateToken, async (req, res) => {
   try {
     const urls = await Url.find({ userId: req.user.id });
-    res.status(200).json(urls);
+
+    // Añadir el dominio completo a las URLs cortas
+    const fullUrls = urls.map(url => ({
+      ...url._doc,
+      shortUrl: `${baseUrl}/${url.shortUrl}`
+    }));
+
+    res.status(200).json(fullUrls);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
