@@ -21,6 +21,9 @@ router.post('/shorten',
       return res.status(400).json({ errors: errors.array() });
     }
 
+    console.log('Authenticated User:', req.isAuthenticated());
+    console.log('User:', req.user);
+
     const { originalUrl, customUrl, expiresAt } = req.body;
     const shortUrl = customUrl || nanoid(7);
     const userId = req.user ? req.user._id : null; // Obtener userId de la sesión si está autenticado

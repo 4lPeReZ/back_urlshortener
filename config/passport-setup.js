@@ -21,18 +21,15 @@ passport.use(new GoogleStrategy({
   callbackURL: `${process.env.BASE_URL}/auth/google/callback`
 }, async (accessToken, refreshToken, profile, done) => {
   try {
-    const currentUser = await User.findOne({ googleId: profile.id });
-    if (currentUser) {
-      done(null, currentUser);
-    } else {
-      const newUser = new User({
+    let currentUser = await User.findOne({ googleId: profile.id });
+    if (!currentUser) {
+      currentUser = await new User({
         googleId: profile.id,
         username: profile.displayName,
         thumbnail: profile._json.picture
-      });
-      await newUser.save();
-      done(null, newUser);
+      }).save();
     }
+    done(null, currentUser);
   } catch (err) {
     done(err, null);
   }
@@ -44,18 +41,15 @@ passport.use(new GitHubStrategy({
   callbackURL: `${process.env.BASE_URL}/auth/github/callback`
 }, async (accessToken, refreshToken, profile, done) => {
   try {
-    const currentUser = await User.findOne({ githubId: profile.id });
-    if (currentUser) {
-      done(null, currentUser);
-    } else {
-      const newUser = new User({
+    let currentUser = await User.findOne({ githubId: profile.id });
+    if (!currentUser) {
+      currentUser = await new User({
         githubId: profile.id,
         username: profile.username,
         thumbnail: profile._json.avatar_url
-      });
-      await newUser.save();
-      done(null, newUser);
+      }).save();
     }
+    done(null, currentUser);
   } catch (err) {
     done(err, null);
   }
