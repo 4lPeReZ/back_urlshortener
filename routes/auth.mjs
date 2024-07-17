@@ -38,8 +38,12 @@ router.get('/github/callback', passport.authenticate('github', { failureRedirect
 
 // Ruta para cerrar sesión
 router.get('/logout', (req, res) => {
-  req.logout();
-  res.redirect('/');
+  req.logout(err => {
+    if (err) {
+      return next(err);
+    }
+    res.redirect('/');
+  });
 });
 
 export default router;
