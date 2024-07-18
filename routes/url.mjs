@@ -14,10 +14,16 @@ const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
-  if (token == null) return res.sendStatus(401);
+  if (token == null) {
+    req.user = null;
+    return next();
+  }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
+    if (err) {
+      req.user = null;
+      return next();
+    }
     req.user = user;
     next();
   });
@@ -26,6 +32,7 @@ function authenticateToken(req, res, next) {
 // Ruta para acortar una URL
 router.post('/shorten',
   body('originalUrl').isURL().withMessage('Invalid URL'),
+  authenticateToken,
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -34,7 +41,23 @@ router.post('/shorten',
 
     const { originalUrl, customUrl, expiresAt } = req.body;
     const shortUrl = customUrl || nanoid(7);
-    const userId = req.user ? req.user.id : null; // Obtener userId de la sesión si está autenticado
+
+    if (!req.user) {
+      // Si el usuario no está autenticado, devolver la URL acortada sin guardarla en la base de datos
+      const fullShortUrl = `${baseUrl}/${shortUrl}`;
+      return res.status(201).json({
+        originalUrl,
+        shortUrl: fullShortUrl,
+        userId: null,
+        expiresAt,
+        status: 'Active',
+        clicks: 0,
+        createdAt: new Date().toISOString(),
+        _id: nanoid(12) // Generar un ID temporal
+      });
+    }
+
+    const userId = req.user.id;
 
     try {
       const url = new Url({ originalUrl, shortUrl, expiresAt, userId });
@@ -90,6 +113,10 @@ router.get('/:shortUrl', async (req, res) => {
 
 // Ruta para obtener las URLs acortadas por un usuario autenticado
 router.get('/user/urls', authenticateToken, async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'User not authenticated' });
+  }
+
   try {
     const urls = await Url.find({ userId: req.user.id });
 
