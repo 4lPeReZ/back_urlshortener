@@ -122,7 +122,7 @@ router.get('/user/urls', authenticateToken, async (req, res) => {
 });
 
 // Ruta para actualizar una URL acortada
-router.put('/update/:id', authenticateToken,
+router.put('/update/:id',
   body('originalUrl').isURL().withMessage('Invalid URL'),
   async (req, res) => {
     const errors = validationResult(req);
@@ -132,6 +132,22 @@ router.put('/update/:id', authenticateToken,
 
     const { id } = req.params;
     const { originalUrl, customUrl, expiresAt } = req.body;
+    const shortUrl = customUrl || nanoid(7);
+
+    // Si no está autenticado, no se guarda en la base de datos
+    if (!req.user) {
+      const fullShortUrl = `${baseUrl}/${shortUrl}`;
+      return res.status(200).json({
+        originalUrl,
+        shortUrl: fullShortUrl,
+        userId: null,
+        expiresAt,
+        status: 'Active',
+        clicks: 0,
+        createdAt: new Date().toISOString(),
+        _id: id
+      });
+    }
 
     try {
       const url = await Url.findById(id);
@@ -144,7 +160,7 @@ router.put('/update/:id', authenticateToken,
       }
 
       url.originalUrl = originalUrl;
-      url.shortUrl = customUrl || nanoid(7);
+      url.shortUrl = shortUrl;
       url.expiresAt = expiresAt || url.expiresAt;
 
       await url.save();
