@@ -24,7 +24,7 @@ function authenticateToken(req, res, next) {
 }
 
 // Ruta para acortar una URL
-router.post('/shorten', 
+router.post('/shorten', authenticateToken,
   body('originalUrl').isURL().withMessage('Invalid URL'),
   async (req, res) => {
     const errors = validationResult(req);
@@ -34,25 +34,24 @@ router.post('/shorten',
 
     const { originalUrl, customUrl, expiresAt } = req.body;
     const shortUrl = customUrl || nanoid(7);
-
-    if (!req.user) {
-      // Si el usuario no está autenticado, devolver la URL acortada sin guardarla en la base de datos
-      const fullShortUrl = `${baseUrl}/${shortUrl}`;
-      return res.status(201).json({
-        originalUrl,
-        shortUrl: fullShortUrl,
-        userId: null,
-        expiresAt,
-        status: 'Active',
-        clicks: 0,
-        createdAt: new Date().toISOString(),
-        _id: nanoid(12) // Generar un ID temporal
-      });
-    }
-
-    const userId = req.user.id;
+    const userId = req.user ? req.user.id : null;
 
     try {
+      if (!userId) {
+        // Si el usuario no está autenticado, devolver la URL acortada sin guardarla en la base de datos
+        const fullShortUrl = `${baseUrl}/${shortUrl}`;
+        return res.status(201).json({
+          originalUrl,
+          shortUrl: fullShortUrl,
+          userId: null,
+          expiresAt,
+          status: 'Active',
+          clicks: 0,
+          createdAt: new Date().toISOString(),
+          _id: nanoid(12) // Generar un ID temporal
+        });
+      }
+
       const url = new Url({ originalUrl, shortUrl, expiresAt, userId });
       await url.save();
       const fullShortUrl = `${baseUrl}/${shortUrl}`;
