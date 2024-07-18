@@ -14,11 +14,17 @@ const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
-  if (token == null) return res.sendStatus(401);
+  if (token == null) {
+    req.user = null; // No autenticado
+    return next();
+  }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
-    req.user = user;
+    if (err) {
+      req.user = null; // Token inválido
+    } else {
+      req.user = user;
+    }
     next();
   });
 }
@@ -36,22 +42,22 @@ router.post('/shorten', authenticateToken,
     const shortUrl = customUrl || nanoid(7);
     const userId = req.user ? req.user.id : null;
 
-    try {
-      if (!userId) {
-        // Si el usuario no está autenticado, devolver la URL acortada sin guardarla en la base de datos
-        const fullShortUrl = `${baseUrl}/${shortUrl}`;
-        return res.status(201).json({
-          originalUrl,
-          shortUrl: fullShortUrl,
-          userId: null,
-          expiresAt,
-          status: 'Active',
-          clicks: 0,
-          createdAt: new Date().toISOString(),
-          _id: nanoid(12) // Generar un ID temporal
-        });
-      }
+    if (!userId) {
+      // Si el usuario no está autenticado, devolver la URL acortada sin guardarla en la base de datos
+      const fullShortUrl = `${baseUrl}/${shortUrl}`;
+      return res.status(201).json({
+        originalUrl,
+        shortUrl: fullShortUrl,
+        userId: null,
+        expiresAt,
+        status: 'Active',
+        clicks: 0,
+        createdAt: new Date().toISOString(),
+        _id: nanoid(12) // Generar un ID temporal
+      });
+    }
 
+    try {
       const url = new Url({ originalUrl, shortUrl, expiresAt, userId });
       await url.save();
       const fullShortUrl = `${baseUrl}/${shortUrl}`;
@@ -105,6 +111,10 @@ router.get('/:shortUrl', async (req, res) => {
 
 // Ruta para obtener las URLs acortadas por un usuario autenticado
 router.get('/user/urls', authenticateToken, async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'User not authenticated' });
+  }
+
   try {
     const urls = await Url.find({ userId: req.user.id });
 
@@ -121,7 +131,7 @@ router.get('/user/urls', authenticateToken, async (req, res) => {
 });
 
 // Ruta para actualizar una URL acortada
-router.put('/update/:id',
+router.put('/update/:id', authenticateToken,
   body('originalUrl').isURL().withMessage('Invalid URL'),
   async (req, res) => {
     const errors = validationResult(req);
@@ -133,8 +143,8 @@ router.put('/update/:id',
     const { originalUrl, customUrl, expiresAt } = req.body;
     const shortUrl = customUrl || nanoid(7);
 
-    // Si no está autenticado, no se guarda en la base de datos
     if (!req.user) {
+      // Si el usuario no está autenticado, devolver la URL actualizada sin guardarla en la base de datos
       const fullShortUrl = `${baseUrl}/${shortUrl}`;
       return res.status(200).json({
         originalUrl,
