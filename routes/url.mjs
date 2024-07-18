@@ -14,25 +14,18 @@ const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
-  if (token == null) {
-    req.user = null;
-    return next();
-  }
+  if (token == null) return res.sendStatus(401);
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) {
-      req.user = null;
-      return next();
-    }
+    if (err) return res.sendStatus(403);
     req.user = user;
     next();
   });
 }
 
 // Ruta para acortar una URL
-router.post('/shorten',
+router.post('/shorten', 
   body('originalUrl').isURL().withMessage('Invalid URL'),
-  authenticateToken,
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -113,10 +106,6 @@ router.get('/:shortUrl', async (req, res) => {
 
 // Ruta para obtener las URLs acortadas por un usuario autenticado
 router.get('/user/urls', authenticateToken, async (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ message: 'User not authenticated' });
-  }
-
   try {
     const urls = await Url.find({ userId: req.user.id });
 
@@ -131,5 +120,49 @@ router.get('/user/urls', authenticateToken, async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 });
+
+// Ruta para actualizar una URL acortada
+router.put('/update/:id', authenticateToken,
+  body('originalUrl').isURL().withMessage('Invalid URL'),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { id } = req.params;
+    const { originalUrl, customUrl, expiresAt } = req.body;
+
+    try {
+      const url = await Url.findById(id);
+      if (!url) {
+        return res.status(404).json({ message: 'URL not found' });
+      }
+
+      if (url.userId && url.userId.toString() !== req.user.id) {
+        return res.status(403).json({ message: 'Unauthorized' });
+      }
+
+      url.originalUrl = originalUrl;
+      url.shortUrl = customUrl || nanoid(7);
+      url.expiresAt = expiresAt || url.expiresAt;
+
+      await url.save();
+      const fullShortUrl = `${baseUrl}/${url.shortUrl}`;
+      res.status(200).json({
+        originalUrl: url.originalUrl,
+        shortUrl: fullShortUrl,
+        userId: url.userId,
+        expiresAt: url.expiresAt,
+        status: url.status,
+        clicks: url.clicks,
+        createdAt: url.createdAt,
+        _id: url._id
+      });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+);
 
 export default router;
