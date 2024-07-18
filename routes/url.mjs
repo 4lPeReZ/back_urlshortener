@@ -24,7 +24,7 @@ function authenticateToken(req, res, next) {
 }
 
 // Ruta para acortar una URL
-router.post('/shorten', authenticateToken,
+router.post('/shorten',
   body('originalUrl').isURL().withMessage('Invalid URL'),
   async (req, res) => {
     const errors = validationResult(req);
@@ -32,16 +32,14 @@ router.post('/shorten', authenticateToken,
       return res.status(400).json({ errors: errors.array() });
     }
 
-    console.log('Authenticated User:', req.user);
     const { originalUrl, customUrl, expiresAt } = req.body;
     const shortUrl = customUrl || nanoid(7);
-    const userId = req.user ? req.user.id : null;
+    const userId = req.user ? req.user.id : null; // Obtener userId de la sesión si está autenticado
 
     try {
       const url = new Url({ originalUrl, shortUrl, expiresAt, userId });
       await url.save();
       const fullShortUrl = `${baseUrl}/${shortUrl}`;
-      console.log('URL created:', fullShortUrl);
       res.status(201).json({
         originalUrl: url.originalUrl,
         shortUrl: fullShortUrl,
@@ -53,7 +51,6 @@ router.post('/shorten', authenticateToken,
         _id: url._id
       });
     } catch (error) {
-      console.error('Error creating URL:', error);
       res.status(400).json({ error: error.message });
     }
   }
