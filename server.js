@@ -1,59 +1,54 @@
-// server.js
-
-import dotenv from 'dotenv';
-dotenv.config(); // Asegúrate de cargar las variables de entorno
-
 import express from 'express';
 import mongoose from 'mongoose';
-import cors from 'cors';
-import helmet from 'helmet';
+import dotenv from 'dotenv';
 import session from 'express-session';
-import passport from 'passport';
-import urlRoutes from './routes/url.mjs';
-import authRoutes from './routes/auth.mjs';
-import './config/passport-setup.js'; // Importar setup de passport
+import MongoStore from 'connect-mongo';
+import passport from './config/passport.js'; // Importa la configuración de Passport
+import authRoutes from './routes/authRoutes.js'; // Asegúrate de que authRoutes está bien configurado
+
+dotenv.config(); // Cargar las variables de entorno
 
 const app = express();
-const port = process.env.PORT || 5000;
 
-// Middlewares
-app.use(cors());
-app.use(helmet());
+// Conectar a MongoDB
+mongoose.connect(process.env.MONGO_URI).then(() => {
+    console.log('Conectado a MongoDB');
+}).catch(err => {
+    console.error('Error conectando a MongoDB:', err);
+});
+
+// Middleware para parsear JSON y formularios
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
-// Configuración de sesiones
+// Configurar sesiones
 app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: false } // Asegúrate de que 'secure' esté configurado adecuadamente
+    secret: process.env.SESSION_SECRET || 'secret',
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGO_URI,  // Utiliza el URL de MongoDB desde las variables de entorno
+        collectionName: 'sessions',       // Puedes especificar el nombre de la colección de sesiones
+    }),
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 24, // Duración de la sesión: 1 día
+    }
 }));
 
 // Inicializar Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Rutas
+// Rutas de autenticación
 app.use('/auth', authRoutes);
-app.use('/', urlRoutes);  // Asegúrate de que las rutas de URL sean manejadas desde la raíz
 
-// Ruta raíz (opcional)
+// Ruta inicial de prueba
 app.get('/', (req, res) => {
-  res.send('URL Shortener API');
+    res.send('Bienvenido al acortador de URLs');
 });
 
-// Conexión a la base de datos
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => {
-  console.log('Connected to MongoDB');
-})
-.catch((err) => {
-  console.error('Failed to connect to MongoDB', err);
-});
-
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+// Escuchar en el puerto configurado
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
