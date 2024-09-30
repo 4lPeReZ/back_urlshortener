@@ -1,54 +1,41 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
+import passport from 'passport';
 import session from 'express-session';
-import MongoStore from 'connect-mongo';
-import passport from './config/passport.js'; // Importa la configuración de Passport
-import authRoutes from './routes/authRoutes.js'; // Asegúrate de que authRoutes está bien configurado
-
-dotenv.config(); // Cargar las variables de entorno
+import urlRoutes from './routes/urlRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import './config/passport.js'; // Cargar Passport
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-// Conectar a MongoDB
-mongoose.connect(process.env.MONGO_URI).then(() => {
-    console.log('Conectado a MongoDB');
-}).catch(err => {
-    console.error('Error conectando a MongoDB:', err);
-});
-
-// Middleware para parsear JSON y formularios
+// Middleware para manejar JSON
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
-// Configurar sesiones
+// Configurar express-session (necesario para Passport)
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'secret',
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({
-        mongoUrl: process.env.MONGO_URI,  // Utiliza el URL de MongoDB desde las variables de entorno
-        collectionName: 'sessions',       // Puedes especificar el nombre de la colección de sesiones
-    }),
-    cookie: {
-        maxAge: 1000 * 60 * 60 * 24, // Duración de la sesión: 1 día
-    }
+  secret: process.env.SESSION_SECRET || 'your-session-secret', // Usar SESSION_SECRET desde .env
+  resave: false,
+  saveUninitialized: true
 }));
 
-// Inicializar Passport
+// Iniciar Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Rutas de autenticación
-app.use('/auth', authRoutes);
+// Rutas
+app.use('/', urlRoutes);
+app.use('/', authRoutes);
 
-// Ruta inicial de prueba
-app.get('/', (req, res) => {
-    res.send('Bienvenido al acortador de URLs');
+// Conexión a MongoDB Atlas
+mongoose.connect(process.env.MONGO_URI, {
+}).then(() => {
+  console.log('Conectado a MongoDB Atlas');
+}).catch((error) => {
+  console.error('Error conectando a MongoDB:', error);
 });
 
-// Escuchar en el puerto configurado
-const PORT = process.env.PORT || 3000;
+// Levantar el servidor
 app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`Servidor corriendo en el puerto ${PORT}`);
 });

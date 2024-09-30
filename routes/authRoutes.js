@@ -9,7 +9,8 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 // Callback de Google
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
-    res.redirect('/profile');
+    // Aquí redirige al frontend o responde con el estado de autenticación
+    res.redirect('/profile'); // O redirige a una página del frontend que maneje el estado del usuario
   }
 );
 
@@ -19,16 +20,20 @@ router.get('/github', passport.authenticate('github', { scope: ['user:email'] })
 // Callback de GitHub
 router.get('/github/callback', passport.authenticate('github', { failureRedirect: '/' }),
   (req, res) => {
-    res.redirect('/profile');
+    // Redirige al frontend o envía el estado del usuario
+    res.redirect('/profile'); // O modifica esto según tu frontend
   }
 );
 
 // Cerrar sesión
-router.get('/logout', (req, res) => {
-  req.logout(err => {
-    if (err) { return next(err); }
+router.get('/logout', async (req, res, next) => {
+  try {
+    // Usar logout con async/await en versiones modernas de Passport
+    await req.logout();
     res.redirect('/');
-  });
+  } catch (err) {
+    next(err); // Maneja el error de logout si ocurre
+  }
 });
 
 export default router;
