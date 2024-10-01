@@ -14,7 +14,7 @@ app.use(express.json());
 
 // Configurar express-session (necesario para Passport)
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-session-secret', // Usar SESSION_SECRET desde .env
+  secret: process.env.SESSION_SECRET || 'your-session-secret',
   resave: false,
   saveUninitialized: true
 }));
@@ -23,17 +23,18 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Rutas
-app.use('/', urlRoutes);
+// Registrar las rutas
+app.use('/', urlRoutes); // Asegúrate de que esto esté correctamente registrado
 app.use('/', authRoutes);
 
 // Conexión a MongoDB Atlas
-mongoose.connect(process.env.MONGO_URI, {
-}).then(() => {
-  console.log('Conectado a MongoDB Atlas');
-}).catch((error) => {
-  console.error('Error conectando a MongoDB:', error);
-});
+mongoose.connect(process.env.MONGO_URI, {})
+  .then(() => {
+    console.log('Conectado a MongoDB Atlas');
+  })
+  .catch((error) => {
+    console.error('Error conectando a MongoDB:', error);
+  });
 
 // Levantar el servidor
 app.listen(PORT, () => {
